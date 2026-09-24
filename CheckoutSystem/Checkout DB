@@ -1,0 +1,156 @@
+CREATE TABLE ENDUSER
+(
+    UserID INT PRIMARY KEY NOT NULL IDENTITY(1,1),
+    ADusername VARCHAR(9) NOT NULL UNIQUE, -- based on out username structure(8char) with possible users who need an extra char 
+    FullName VARCHAR(40) NOT NULL,
+    Email VARCHAR(50) NOT NULL,
+    IsActive BIT NOT NULL DEFAULT 1
+)
+GO
+CREATE TABLE CATEGORIES
+(
+    CategoryID INT PRIMARY KEY NOT NULL IDENTITY(1,1),
+    CategoryName VARCHAR(50) NOT NULL
+)
+GO
+CREATE TABLE ITEMS
+(
+    ItemID INT PRIMARY KEY NOT NULL IDENTITY(1,1),
+    AssetTag VARCHAR(10) NOT NULL UNIQUE,
+    ItemName VARCHAR(25) NOT NULL,
+    CategoryID INT NOT NULL FOREIGN KEY REFERENCES CATEGORIES(CategoryID),
+    Status VARCHAR(20) NOT NULL DEFAULT 'Available',
+    IsActive BIT NOT NULL DEFAULT 1
+)
+GO
+CREATE TABLE CHECKOUTS
+(
+    CheckoutID INT NOT NULL PRIMARY KEY IDENTITY(1,1),
+    ItemID INT NOT NULL FOREIGN KEY REFERENCES ITEMS(ItemID),
+    UserID INT NOT NULL FOREIGN KEY REFERENCES ENDUSER(UserID),
+    CheckoutDate DATE NOT NULL,
+    CheckinDate DATE,
+    DueDate DATE NOT NULL,
+    TicketNumber CHAR(5) NOT NULL,
+    CONSTRAINT CHK_CheckoutDate CHECK (CheckinDate >= CheckoutDate),
+    CONSTRAINT CHK_DueDate CHECK (DueDate >= CheckoutDate)
+)
+GO
+CREATE TABLE REMINDER_LOG
+(
+    ReminderID INT NOT NULL PRIMARY KEY IDENTITY(1,1),
+    CheckoutID INT NOT NULL FOREIGN KEY REFERENCES CHECKOUTS(CheckoutID),
+    SentDate DATE NOT NULL,
+    EmailStatus VARCHAR(20) NOT NULL,
+    ReminderType VARCHAR(5) NOT NULL,
+    ErrorMessage VARCHAR(255)
+)
+
+GO
+CREATE PROCEDURE sp_CheckoutItem
+    @ItemID INT,
+    @UserID INT,
+    @TicketNumber CHAR(5),
+    @DueDate DATE
+AS
+SET XACT_ABORT ON;
+BEGIN TRY
+    BEGIN TRANSACTION;
+    UPDATE Items
+            SET Status = 'CheckedOut'
+        WHERE ItemID = @ItemID AND Status = 'Available';
+    IF @@ROWCOUNT = 0
+    BEGIN;
+        THROW 50001, 'Item is not available for checkout.', 1;
+    END;
+ELSE
+    BEGIN
+        INSERT INTO Checkouts (ItemID, UserID, CheckoutDate, DueDate, TicketNumber)
+        VALUES (@ItemID, @UserID, GETDATE(), @DueDate, @TicketNumber);
+        COMMIT TRANSACTION;
+    END;
+END TRY
+BEGIN CATCH;
+    IF XACT_STATE() <> 0
+    BEGIN
+        ROLLBACK TRANSACTION;
+    END;
+    THROW;
+END CATCH;
+
+GO
+CREATE PROCEDURE sp_CheckinItem
+    @CheckoutID INT
+AS
+SET XACT_ABORT ON;
+BEGIN TRY
+    BEGIN TRANSACTION;
+    Update Checkouts
+    SET CheckinDate = GETDATE()
+    WHERE CheckoutID = @CheckoutID AND CheckinDate IS NULL;
+    IF @@ROWCOUNT = 0
+    BEGIN;
+        THROW 50002, 'Checkout record not found or item already checked in.', 1;
+    END;
+    ELSE
+    BEGIN
+        Update Items SET Status = 'Available' WHERE ItemID = (SELECT ItemID FROM Checkouts WHERE CheckoutID = @CheckoutID) AND Status = 'CheckedOut' ;
+        COMMIT TRANSACTION;
+    END;
+END TRY
+BEGIN CATCH;
+    IF XACT_STATE() <> 0
+    BEGIN
+        ROLLBACK TRANSACTION;
+    END;
+    THROW;
+END CATCH;
+
+SELECT
+    c.CheckoutID,
+    i.ItemName,
+    e.FullName,
+    e.Email,
+    c.CheckoutDate,
+    c.DueDate
+FROM
+    CHECKOUTS c
+JOIN
+    ITEMS i ON c.ItemID = i.ItemID
+JOIN
+    ENDUSER e ON c.UserID = e.UserID
+WHERE
+    ((DATEDIFF(Day,GETDATE(),DueDate) = 3 AND c.CheckinDate IS NULL)
+    OR
+    (CAST(GETDATE() AS DATE) = DueDate AND c.CheckinDate IS NULL)
+    OR
+    (DATEDIFF(Day, DueDate, GETDATE()) > 0 AND DATEDIFF(Day, DueDate, GETDATE()) % 3 = 0 AND c.CheckinDate IS NULL))
+    AND NOT EXISTS (SELECT 1 FROM REMINDER_LOG r WHERE r.CheckoutID = c.CheckoutID AND r.SentDate = CAST(GETDATE() AS DATE) AND r.ReminderType = CASE WHEN DATEDIFF(Day, GETDATE(), DueDate) = 3 THEN 'Early' WHEN (DATEDIFF(Day, DueDate, GETDATE()) > 0 AND DATEDIFF(Day, DueDate, GETDATE()) % 3 = 0) THEN 'Late' ELSE 'Due' END)
+
+INSERT INTO enduser (ADusername, FullName, Email) VALUES
+('jdoe', 'John Doe', 'john.doe@example.com'),
+('asmith', 'Alice Smith', 'alice.smith@example.com'),
+('bwhite', 'Bob White', 'bob.white@example.com')
+
+INSERT INTO categories (CategoryName) VALUES
+('Laptops'),
+('Monitors'),
+('Keyboards'),
+('Printers')
+
+INSERT INTO items (AssetTag, ItemName, CategoryID) VALUES
+('AT001', 'Dell XPS 13', 1),
+('AT002', 'HP Spectre x360', 1),
+('AT003', 'LG 4K', 2),
+('AT004', 'Logitech MX Keys', 3),
+('AT005', 'Canon PIXMA TS9120', 4)
+
+INSERT INTO checkouts (ItemID, UserID, CheckoutDate, DueDate, TicketNumber) VALUES
+(1, 1, '2026-09-01', '2026-09-20', 'T1234'),
+(4, 2, '2026-09-05', '2026-09-23', 'T5678'),
+(5, 3, '2026-09-10', '2026-09-17', 'T9101')
+
+
+INSERT INTO reminder_log (CheckoutID, SentDate, EmailStatus, ReminderType) VALUES
+(10, CAST(GETDATE() AS DATE), 'Sent', 'Due')
+
