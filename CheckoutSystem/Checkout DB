@@ -1,3 +1,5 @@
+CREATE DATABASE ITCheckoutSystem;
+USE ITCheckoutSystem;
 CREATE TABLE ENDUSER
 (
     UserID INT PRIMARY KEY NOT NULL IDENTITY(1,1),
@@ -47,7 +49,7 @@ CREATE TABLE REMINDER_LOG
 )
 
 GO
-CREATE PROCEDURE sp_CheckoutItem
+CREATE PROCEDURE sp_CheckoutItem --Procedure is mandated as the only way to checkout an item, this will ensure that the item is available and that the checkout is logged properly and no "raceing"
     @ItemID INT,
     @UserID INT,
     @TicketNumber CHAR(5),
@@ -79,7 +81,7 @@ BEGIN CATCH;
 END CATCH;
 
 GO
-CREATE PROCEDURE sp_CheckinItem
+CREATE PROCEDURE sp_CheckinItem --Same as checkout, this will ensure that the item is checked in properly and that the item is available for checkout again
     @CheckoutID INT
 AS
 SET XACT_ABORT ON;
@@ -152,5 +154,6 @@ INSERT INTO checkouts (ItemID, UserID, CheckoutDate, DueDate, TicketNumber) VALU
 
 
 INSERT INTO reminder_log (CheckoutID, SentDate, EmailStatus, ReminderType) VALUES
-(10, CAST(GETDATE() AS DATE), 'Sent', 'Due')
+(2, CAST(GETDATE() AS DATE), 'Sent', 'Due')
 
+SELECT * FROM REMINDER_LOG;
