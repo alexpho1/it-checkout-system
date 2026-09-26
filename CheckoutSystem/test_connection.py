@@ -22,29 +22,43 @@ conn_string = (
 conn =pyodbc.connect(conn_string)
 
 cursor = conn.cursor()
-cursor.execute("""SELECT
-    c.CheckoutID,
+cursor.execute("""WITH CheckoutsWithType AS (
+    SELECT
+        c.CheckoutID,
+        c.ItemID,
+        c.UserID,
+        c.CheckoutDate,
+        c.DueDate,
+        c.CheckinDate,
+        CASE
+            WHEN (DATEDIFF(Day,GETDATE(),DueDate) = 3) THEN 'Early'
+            WHEN (CAST(GETDATE() AS DATE) = DueDate) THEN 'Due'
+            WHEN (DATEDIFF(Day, DueDate, GETDATE()) > 0 AND DATEDIFF(Day, DueDate, GETDATE()) % 3 = 0) THEN 'Late'
+            ELSE NULL
+
+        END AS ReminderType
+    FROM Checkouts c
+)
+SELECT
+    cwt.CheckoutID,
     i.ItemName,
     e.FullName,
     e.Email,
-    c.CheckoutDate,
-    c.DueDate
-FROM
-    CHECKOUTS c
-JOIN
-    ITEMS i ON c.ItemID = i.ItemID
-JOIN
-    ENDUSER e ON c.UserID = e.UserID
+    cwt.DueDate,
+    cwt.ReminderType
+FROM CheckoutsWithType cwt
+JOIN ITEMS i ON cwt.ItemID = i.ItemID
+JOIN ENDUSER e ON cwt.UserID = e.UserID
 WHERE
-    ((DATEDIFF(Day,GETDATE(),DueDate) = 3 AND c.CheckinDate IS NULL)
-    OR
-    (CAST(GETDATE() AS DATE) = DueDate AND c.CheckinDate IS NULL)
-    OR
-    (DATEDIFF(Day, DueDate, GETDATE()) > 0 AND DATEDIFF(Day, DueDate, GETDATE()) % 3 = 0 AND c.CheckinDate IS NULL))
-    AND NOT EXISTS (SELECT 1 FROM REMINDER_LOG r WHERE r.CheckoutID = c.CheckoutID AND r.SentDate = CAST(GETDATE() AS DATE) AND r.ReminderType = CASE WHEN DATEDIFF(Day, GETDATE(), DueDate) = 3 THEN 'Early' WHEN (DATEDIFF(Day, DueDate, GETDATE()) > 0 AND DATEDIFF(Day, DueDate, GETDATE()) % 3 = 0) THEN 'Late' ELSE 'Due' END)
-""")
+    cwt.ReminderType IS NOT NULL
+    AND cwt.CheckinDate IS NULL
+    AND NOT EXISTS (
+        SELECT 1 FROM Reminder_Log r
+        WHERE r.CheckoutID = cwt.CheckoutID
+          AND r.SentDate = CAST(GETDATE() AS DATE)
+          AND r.ReminderType = cwt.ReminderType
+    )""")
 result = cursor.fetchall()
-for row in result:
-    print(row)
 
-print(len(result))
+for row in result:
+    print(f"Would send email to {row.Email} about {row.ItemName}, due {row.DueDate}")
