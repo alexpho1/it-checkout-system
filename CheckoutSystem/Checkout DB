@@ -127,9 +127,9 @@ INSERT INTO items (AssetTag, ItemName, CategoryID) VALUES
 ('AT005', 'Canon PIXMA TS9120', 4)
 
 INSERT INTO checkouts (ItemID, UserID, CheckoutDate, DueDate, TicketNumber) VALUES
-(1, 1, '2026-09-01', '2026-09-28', 'T1234'),
-(4, 2, '2026-09-05', '2026-09-25', 'T5678'),
-(5, 3, '2026-09-10', '2026-09-19', 'T9101')
+(1, 1, '2026-09-01', '2026-09-29', 'T1234'),
+(4, 2, '2026-09-05', '2026-09-26', 'T5678'),
+(5, 3, '2026-09-10', '2026-09-20', 'T9101')
 
 INSERT INTO reminder_log (CheckoutID, SentDate, EmailStatus, ReminderType) VALUES
 (2, CAST(GETDATE() AS DATE), 'Sent', 'Due')
@@ -170,3 +170,17 @@ WHERE
           AND r.SentDate = CAST(GETDATE() AS DATE)
           AND r.ReminderType = cwt.ReminderType
     )
+
+DELETE FROM Reminder_Log;
+DELETE FROM Checkouts;
+
+
+SELECT 
+    i.ItemName,
+    i.AssetTag,
+    i.Status,
+    c.DueDate,
+    e.FullName
+FROM ITEMS i
+LEFT JOIN Checkouts c ON i.ItemID = c.ItemID AND c.CheckinDate IS NULL
+LEFT JOIN ENDUSER e ON c.UserID = e.UserID
