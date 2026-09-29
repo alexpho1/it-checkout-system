@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head><title>Add Category</title></head>
+<body>
+    <h1>Add New Category</h1>
+    <form method="POST" action="/add-category">
+        {% if error %}
+            <p style="color:red">{{ error }}</p>
+        {% endif %}
+        <label> Category Name: <input type="text" name="category_name" required></label><br>
+        <button type="submit">Add Category</button>
+    </form>
+    <p><a href="/items">Back to Items</a></p>
+</body>
+</html>

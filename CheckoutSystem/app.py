@@ -2,12 +2,12 @@ from flask import Flask, g, render_template, request, redirect, url_for
 from dotenv import load_dotenv
 import pyodbc
 import os
-print("Imports successful")
+
 app = Flask(__name__)
-print("Flask app created")
+
 
 load_dotenv()
-print("dotenv loaded")
+
 
 dbuser = os.getenv("DB_USER")
 dbpassword = os.getenv("DB_PASSWORD")
@@ -23,7 +23,6 @@ conn_string = (
     "Encrypt=yes;"
     "TrustServerCertificate=yes;"
 )
-print("conn_string built:", conn_string)
 
 def get_db():
     if "db" not in g:
@@ -76,7 +75,23 @@ def add_item():
         categories = cursor.fetchall()
         return render_template("add_item.html", categories=categories)
 
-
+@app.route("/add-category", methods=["GET", "POST"])
+def add_category():
+    if request.method == "POST":
+        category_name = request.form["category_name"]
+        db = get_db()
+        cursor = db.cursor()
+        try:
+            cursor.execute("""
+                INSERT INTO Categories (CategoryName) VALUES (?)""",
+                (category_name,)
+            )
+            db.commit()
+            return redirect(url_for("add_item"))  # send them to the add items page after adding
+        except:
+            return render_template("add_category.html", error="That category already exists.")
+    else:
+        return render_template("add_category.html")
 
 print("conn_string built:", conn_string)
 if __name__ == "__main__":

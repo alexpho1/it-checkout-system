@@ -1,0 +1,4 @@
+<form method="POST" action="/add-category">
+    <label>Category Name: <input type="text" name="item_name" required></label><br>
+    <button type="submit">Add Category</button>
+</form>

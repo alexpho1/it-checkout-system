@@ -126,13 +126,12 @@ INSERT INTO items (AssetTag, ItemName, CategoryID) VALUES
 ('AT004', 'Logitech MX Keys', 3),
 ('AT005', 'Canon PIXMA TS9120', 4)
 
-INSERT INTO checkouts (ItemID, UserID, CheckoutDate, DueDate, TicketNumber) VALUES
-(1, 1, '2026-09-01', '2026-09-29', 'T1234'),
-(4, 2, '2026-09-05', '2026-09-26', 'T5678'),
-(5, 3, '2026-09-10', '2026-09-20', 'T9101')
 
-INSERT INTO reminder_log (CheckoutID, SentDate, EmailStatus, ReminderType) VALUES
-(2, CAST(GETDATE() AS DATE), 'Sent', 'Due')
+INSERT INTO checkouts (ItemID, UserID, CheckoutDate, DueDate, TicketNumber) VALUES
+(1, 1, '2026-09-01', '2026-10-01', 'T1234'),
+(4, 2, '2026-09-05', '2026-09-28', 'T5678'),
+(5, 3, '2026-09-10', '2026-09-22', 'T9101')
+
 
 WITH CheckoutsWithType AS (
     SELECT
@@ -171,10 +170,6 @@ WHERE
           AND r.ReminderType = cwt.ReminderType
     )
 
-DELETE FROM Reminder_Log;
-DELETE FROM Checkouts;
-
-
 SELECT 
     i.ItemName,
     i.AssetTag,
@@ -184,3 +179,5 @@ SELECT
 FROM ITEMS i
 LEFT JOIN Checkouts c ON i.ItemID = c.ItemID AND c.CheckinDate IS NULL
 LEFT JOIN ENDUSER e ON c.UserID = e.UserID
+
+ALTER TABLE Categories ADD CONSTRAINT UQ_CategoryName UNIQUE (CategoryName); --Noticed that categories were able to be duplicated added this to prevent that
