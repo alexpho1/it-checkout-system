@@ -1,3 +1,6 @@
+from datetime import datetime
+import re
+
 from flask import Flask, g, render_template, request, redirect, url_for
 from dotenv import load_dotenv
 import pyodbc
@@ -93,6 +96,55 @@ def add_category():
     else:
         return render_template("add_category.html")
 
+def get_form_data():
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute("SELECT ItemID, ItemName FROM ITEMS WHERE Status = 'Available' AND IsActive = 1")
+    items = cursor.fetchall()
+    cursor.execute("SELECT UserID, FullName FROM ENDUSER WHERE IsActive = 1 ORDER BY FullName")
+    users = cursor.fetchall()
+    date_today = datetime.now().date()
+    return items, users, date_today
+
+@app.route("/checkout", methods=["GET", "POST"])
+def checkout():
+    if request.method == "GET":
+        items, users, date_today = get_form_data()
+        checkout_form_data = {
+                "items": items,
+                "users": users,
+                "today": date_today
+            }
+        return render_template("checkout.html", **checkout_form_data)
+    if request.method == "POST":
+        db = get_db()
+        cursor = db.cursor()
+        ItemId = request.form["item_id"]
+        UserId = request.form["user_id"]
+        TicketNumber = request.form["ticket_number"]
+        DueDate = request.form["due_date"]
+        try:
+            checkoutsp = "EXEC sp_CheckoutItem @ItemID=?, @UserID=?, @TicketNumber=?, @DueDate=?"
+            cursor.execute(
+                checkoutsp,
+                (ItemId, UserId, TicketNumber, DueDate)
+            )
+            while cursor.nextset():
+                pass
+            db.commit()
+            return redirect(url_for("items"))  # send them to the inventory page after checkout
+        except Exception as e:
+            print("Error during checkout:", e)
+            db.rollback()  # Rollback the transaction in case of error
+            items, users, date_today = get_form_data()
+            checkout_form_data = {
+                    "items": items,
+                    "users": users,
+                    "today": date_today
+                }
+            return render_template("checkout.html", **checkout_form_data, error = "An error occurred during checkout. Please try again.")
+
 print("conn_string built:", conn_string)
 if __name__ == "__main__":
     app.run(debug=True,port=5001)
+

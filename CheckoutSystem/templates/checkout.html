@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head><title>Checkout</title></head>
+<body>
+    <h1>Item Checkout</h1>
+    <form method="POST" action="/checkout">
+        {%if error %}
+            <p style="color:red">{{ error }}</p>
+        {% endif %}
+        <label> Name: 
+            <select name="user_id" required>
+                <option value="" disabled selected>Select a user</option>
+                {% for user in users %}
+                <option value="{{ user.UserID }}">{{ user.FullName }}</option>
+                {% endfor %}
+            </select>
+        </label><br>
+        <label>Item:
+            <select name="item_id" required>
+                <option value="" disabled selected>Select an item</option>
+                {% for item in items %}
+                <option value="{{ item.ItemID }}">{{ item.ItemName }}</option>
+                {% endfor %}
+            </select>
+        </label><br>
+        <label> Ticket Number: <input type="text" name="ticket_number" maxlength="5" pattern="[0-9]{5}" inputmode="numeric" required></label><br>
+        <label> Return Date: <input type="date" name="due_date" min="{{ today }}" required></label><br>
+        <button type="submit">Submit</button>
+    </form>
+    <p><a href="/items">Back to Items</a></p>
+</body>
+</html>
