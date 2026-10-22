@@ -1,32 +1,42 @@
-<!DOCTYPE html>
-<html>
-<head><title>Checkout</title></head>
-<body>
-    <h1>Item Checkout</h1>
-    <form method="POST" action="/checkout">
-        {%if error %}
-            <p style="color:red">{{ error }}</p>
-        {% endif %}
-        <label> Name: 
-            <select name="user_id" required>
-                <option value="" disabled selected>Select a user</option>
+{% extends "base.html" %}
+{% block title %}Check Out{% endblock %}
+
+{% block content %}
+<h1>Check Out</h1>
+<p class="subtitle">Assign an available item to a user.</p>
+
+<div class="card card-narrow">
+    {% if error %}<div class="alert">{{ error }}</div>{% endif %}
+    <form action="/checkout" method="POST">
+        <div class="field">
+            <label for="user_id">User</label>
+            <select id="user_id" name="user_id" required>
                 {% for user in users %}
                 <option value="{{ user.UserID }}">{{ user.FullName }}</option>
                 {% endfor %}
             </select>
-        </label><br>
-        <label>Item:
-            <select name="item_id" required>
-                <option value="" disabled selected>Select an item</option>
+        </div>
+        <div class="field">
+            <label for="item_id">Item</label>
+            <select id="item_id" name="item_id" required>
                 {% for item in items %}
                 <option value="{{ item.ItemID }}">{{ item.ItemName }}</option>
                 {% endfor %}
             </select>
-        </label><br>
-        <label> Ticket Number: <input type="text" name="ticket_number" maxlength="5" pattern="[0-9]{5}" inputmode="numeric" required></label><br>
-        <label> Return Date: <input type="date" name="due_date" min="{{ today }}" required></label><br>
-        <button type="submit">Submit</button>
+        </div>
+        <div class="field">
+            <label for="ticket_number">SysAid ticket number</label>
+            <input type="text" id="ticket_number" name="ticket_number" maxlength="5" pattern="[0-9]{5}" required>
+            <p class="hint">5 digits.</p>
+        </div>
+        <div class="field">
+            <label for="due_date">Due date</label>
+            <input type="date" id="due_date" name="due_date" min="{{ today }}" required>
+        </div>
+        <div class="form-actions">
+            <button type="submit" class="btn">Check Out</button>
+            <a class="link-back" href="{{ url_for('items') }}">Cancel</a>
+        </div>
     </form>
-    <p><a href="/items">Back to Items</a></p>
-</body>
-</html>
+</div>
+{% endblock %}

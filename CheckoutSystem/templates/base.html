@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}IT Checkout{% endblock %} · IT Checkout</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    {% set ep = request.endpoint %}
+    <header class="topbar">
+        <div class="topbar-inner">
+
+            {# ---- LOGO SLOT ----
+               To use your logo: save it as static/logo.png, then replace the
+               <span class="logo-placeholder">…</span> line below with:
+               <img src="{{ url_for('static', filename='logo.png') }}" alt="Company logo">
+               The image is scaled to 40px tall automatically. #}
+            <a class="brand" href="{{ url_for('home') }}">
+                <span class="logo-placeholder">LOGO</span>
+                <span class="brand-name">IT Checkout</span>
+            </a>
+
+            <nav class="nav">
+                <a href="{{ url_for('checkout') }}"     class="{{ 'active' if ep == 'checkout' }}">Check Out</a>
+                <a href="{{ url_for('checkin') }}"      class="{{ 'active' if ep == 'checkin' }}">Check In</a>
+                <a href="{{ url_for('items') }}"        class="{{ 'active' if ep == 'items' }}">Inventory</a>
+                <a href="{{ url_for('add_item') }}"     class="{{ 'active' if ep == 'add_item' }}">Add Item</a>
+                <a href="{{ url_for('add_category') }}" class="{{ 'active' if ep == 'add_category' }}">Add Category</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="page">
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

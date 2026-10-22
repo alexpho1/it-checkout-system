@@ -1,23 +1,47 @@
-<!DOCTYPE html>
-<html>
-<head><title>Item Inventory</title></head>
-<body>
-    <h1>IT Equipment Inventory</h1>
-    <table border="1">
-        <tr>
-            <th>Item Name</th>
-            <th>Asset Tag</th>
-            <th>Due Date</th>
-            <th>Checked Out To</th>
-        </tr>
-        {% for item in items %}
-        <tr>
-            <td>{{ item.ItemName }}</td>
-            <td>{{ item.ServiceTag }}</td>
-            <td>{{ item.DueDate if item.DueDate else "—" }}</td>
-            <td>{{ item.FullName if item.FullName else "Available" }}</td>
-        </tr>
-        {% endfor %}
+{% extends "base.html" %}
+{% block title %}Inventory{% endblock %}
+
+{% block content %}
+<div class="toolbar">
+    <div>
+        <h1>Inventory</h1>
+        <p class="subtitle" style="margin:4px 0 0;">Every item and who currently has it.</p>
+    </div>
+    <a class="btn" href="{{ url_for('checkout') }}">Check Out an Item</a>
+</div>
+
+<div class="table-wrap">
+    <table>
+        <thead>
+            <tr>
+                <th>Item Name</th>
+                <th>Asset Tag</th>
+                <th>Status</th>
+                <th>Due Date</th>
+                <th>Checked Out To</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+            <tr>
+                <td>{{ item.ItemName }}</td>
+                <td>{{ item.AssetTag }}</td>
+                <td>
+                    {% if item.Status == 'Available' %}
+                        <span class="badge badge-available">Available</span>
+                    {% elif item.Status == 'Checked Out' or item.Status == 'CheckedOut' %}
+                        <span class="badge badge-out">{{ item.Status }}</span>
+                    {% else %}
+                        <span class="badge badge-other">{{ item.Status }}</span>
+                    {% endif %}
+                </td>
+                <td>{% if item.DueDate %}{{ item.DueDate }}{% else %}<span class="muted">—</span>{% endif %}</td>
+                <td>{% if item.FullName %}{{ item.FullName }}{% else %}<span class="muted">—</span>{% endif %}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5" class="empty">No items yet.</td></tr>
+            {% endfor %}
+        </tbody>
     </table>
-</body>
-</html>
+</div>
+{% endblock %}

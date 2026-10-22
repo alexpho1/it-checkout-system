@@ -1,15 +1,21 @@
-<!DOCTYPE html>
-<html>
-<head><title>Add Category</title></head>
-<body>
-    <h1>Add New Category</h1>
-    <form method="POST" action="/add-category">
-        {% if error %}
-            <p style="color:red">{{ error }}</p>
-        {% endif %}
-        <label> Category Name: <input type="text" name="category_name" required></label><br>
-        <button type="submit">Add Category</button>
+{% extends "base.html" %}
+{% block title %}Add Category{% endblock %}
+
+{% block content %}
+<h1>Add Category</h1>
+<p class="subtitle">Create a new type of equipment, like Laptop or Monitor.</p>
+
+<div class="card card-narrow">
+    {% if error %}<div class="alert">{{ error }}</div>{% endif %}
+    <form action="/add-category" method="POST">
+        <div class="field">
+            <label for="category_name">Category name</label>
+            <input type="text" id="category_name" name="category_name" required>
+        </div>
+        <div class="form-actions">
+            <button type="submit" class="btn">Add Category</button>
+            <a class="link-back" href="{{ url_for('items') }}">Cancel</a>
+        </div>
     </form>
-    <p><a href="/items">Back to Items</a></p>
-</body>
-</html>
+</div>
+{% endblock %}

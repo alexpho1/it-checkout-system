@@ -1,22 +1,25 @@
-<!DOCTYPE html>
-<html>
-<head><title>Checkin</title></head>
-<body>
-    <h1>Item Checkin</h1>
-    <form method="POST" action="/checkin">
-        {%if error %}
-            <p style="color:red">{{ error }}</p>
-        {% endif %}
-        <label>Check In
-            <select name="checkout_id" required>
-                <option value="" disabled selected>Select an item to check in.</option>
+{% extends "base.html" %}
+{% block title %}Check In{% endblock %}
+
+{% block content %}
+<h1>Check In</h1>
+<p class="subtitle">Return an item to inventory.</p>
+
+<div class="card card-narrow">
+    {% if error %}<div class="alert">{{ error }}</div>{% endif %}
+    <form action="/checkin" method="POST">
+        <div class="field">
+            <label for="checkout_id">Checked-out item</label>
+            <select id="checkout_id" name="checkout_id" required>
                 {% for checkout in checkouts %}
                 <option value="{{ checkout.CheckoutID }}">{{ checkout.ItemName }} - {{ checkout.FullName }} - {{ checkout.DueDate }}</option>
                 {% endfor %}
             </select>
-        </label>
-        <button type="submit">Submit</button>
+        </div>
+        <div class="form-actions">
+            <button type="submit" class="btn">Check In</button>
+            <a class="link-back" href="{{ url_for('items') }}">Cancel</a>
+        </div>
     </form>
-    <p><a href="/items">Back to Items</a></p>
-</body>
-</html>
+</div>
+{% endblock %}

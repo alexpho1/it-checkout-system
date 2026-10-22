@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head><title>Item Inventory</title></head>
+<body>
+    <h1>IT Equipment Inventory</h1>
+    <table border="1">
+        <tr>
+            <th>Item Name</th>
+            <th>Asset Tag</th>
+            <th>Due Date</th>
+            <th>Checked Out To</th>
+        </tr>
+        {% for item in items %}
+        <tr>
+            <td>{{ item.ItemName }}</td>
+            <td>{{ item.ServiceTag }}</td>
+            <td>{{ item.DueDate if item.DueDate else "—" }}</td>
+            <td>{{ item.FullName if item.FullName else "Available" }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>

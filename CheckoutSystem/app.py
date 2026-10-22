@@ -173,5 +173,10 @@ def checkin():
             db.rollback()  # Rollback the transaction in case of error
             return render_template("checkin.html", **get_checkouts(), error = "An error occurred during checkin. Please try again.")  # Redirect back to the checkin page on error
 
+
+@app.route("/")
+def home():
+    return render_template("home.html")
+
 if __name__ == "__main__":
     app.run(debug=True, port=5001)

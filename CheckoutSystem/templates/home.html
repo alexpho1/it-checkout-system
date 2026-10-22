@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<h1>IT Equipment Checkout</h1>
+<p class="subtitle">Track who has what, and when it's due back.</p>
+
+<div class="section-label">Daily</div>
+<div class="tiles">
+    <a class="tile primary" href="{{ url_for('checkout') }}">
+        <span class="tile-title">Check Out</span>
+        <span class="tile-desc">Assign an item to a user</span>
+    </a>
+    <a class="tile" href="{{ url_for('checkin') }}">
+        <span class="tile-title">Check In</span>
+        <span class="tile-desc">Return an item to inventory</span>
+    </a>
+    <a class="tile" href="{{ url_for('items') }}">
+        <span class="tile-title">Inventory</span>
+        <span class="tile-desc">See every item and who has it</span>
+    </a>
+</div>
+
+<div class="section-label">Manage</div>
+<div class="tiles">
+    <a class="tile" href="{{ url_for('add_item') }}">
+        <span class="tile-title">Add Item</span>
+        <span class="tile-desc">Register new equipment</span>
+    </a>
+    <a class="tile" href="{{ url_for('add_category') }}">
+        <span class="tile-title">Add Category</span>
+        <span class="tile-desc">Create a new item type</span>
+    </a>
+</div>
+{% endblock %}
