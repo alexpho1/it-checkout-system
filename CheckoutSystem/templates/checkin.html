@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head><title>Checkin</title></head>
+<body>
+    <h1>Item Checkin</h1>
+    <form method="POST" action="/checkin">
+        {%if error %}
+            <p style="color:red">{{ error }}</p>
+        {% endif %}
+        <label>Check In
+            <select name="checkout_id" required>
+                <option value="" disabled selected>Select an item to check in.</option>
+                {% for checkout in checkouts %}
+                <option value="{{ checkout.CheckoutID }}">{{ checkout.ItemName }} - {{ checkout.FullName }} - {{ checkout.DueDate }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <button type="submit">Submit</button>
+    </form>
+    <p><a href="/items">Back to Items</a></p>
+</body>
+</html>

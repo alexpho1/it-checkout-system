@@ -104,18 +104,12 @@ def get_form_data():
     cursor.execute("SELECT UserID, FullName FROM ENDUSER WHERE IsActive = 1 ORDER BY FullName")
     users = cursor.fetchall()
     date_today = datetime.now().date()
-    return items, users, date_today
+    return {"items": items, "users": users, "today": date_today}
 
 @app.route("/checkout", methods=["GET", "POST"])
 def checkout():
     if request.method == "GET":
-        items, users, date_today = get_form_data()
-        checkout_form_data = {
-                "items": items,
-                "users": users,
-                "today": date_today
-            }
-        return render_template("checkout.html", **checkout_form_data)
+        return render_template("checkout.html", **get_form_data())
     if request.method == "POST":
         db = get_db()
         cursor = db.cursor()
@@ -136,15 +130,48 @@ def checkout():
         except Exception as e:
             print("Error during checkout:", e)
             db.rollback()  # Rollback the transaction in case of error
-            items, users, date_today = get_form_data()
-            checkout_form_data = {
-                    "items": items,
-                    "users": users,
-                    "today": date_today
-                }
-            return render_template("checkout.html", **checkout_form_data, error = "An error occurred during checkout. Please try again.")
+            return render_template("checkout.html", **get_form_data(), error = "An error occurred during checkout. Please try again.")
 
-print("conn_string built:", conn_string)
+
+def get_checkouts():
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute("""
+        SELECT 
+            c.CheckoutID,
+            i.ItemName,
+            e.FullName,
+            c.DueDate
+        FROM Checkouts c
+        JOIN ITEMS i ON c.ItemID = i.ItemID
+        JOIN ENDUSER e ON c.UserID = e.UserID
+        WHERE c.CheckinDate IS NULL
+    """)
+    checkouts = cursor.fetchall()
+    return {"checkouts": checkouts}
+
+@app.route("/checkin", methods=["GET", "POST"])
+def checkin():
+    if request.method == "GET":
+        return render_template("checkin.html", **get_checkouts())
+    if request.method == "POST":
+        db = get_db()
+        cursor = db.cursor()
+        CheckoutId = request.form["checkout_id"]
+        try:
+            checkinsp = "EXEC sp_CheckinItem @CheckoutID=?"
+            cursor.execute(
+                checkinsp,
+                (CheckoutId,)
+            )
+            while cursor.nextset():
+                pass
+            db.commit()
+            return redirect(url_for("items"))  # send them to the inventory page after checkin
+        except Exception as e:
+            print("Error during checkin:", e)
+            db.rollback()  # Rollback the transaction in case of error
+            return render_template("checkin.html", **get_checkouts(), error = "An error occurred during checkin. Please try again.")  # Redirect back to the checkin page on error
+
 if __name__ == "__main__":
-    app.run(debug=True,port=5001)
-
+    app.run(debug=True, port=5001)

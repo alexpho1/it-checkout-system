@@ -14,6 +14,8 @@ CREATE TABLE CATEGORIES
     CategoryID INT PRIMARY KEY NOT NULL IDENTITY(1,1),
     CategoryName VARCHAR(50) NOT NULL
 )
+ALTER TABLE Categories ADD CONSTRAINT UQ_CategoryName UNIQUE (CategoryName); --Noticed that categories were able to be duplicated added this to prevent that
+
 GO
 CREATE TABLE ITEMS
 (
@@ -113,6 +115,7 @@ GO
 CREATE PROCEDURE sp_CheckinItem --Same as checkout, this will ensure that the item is checked in properly and that the item is available for checkout again
     @CheckoutID INT
 AS
+SET NOCOUNT ON;
 SET XACT_ABORT ON;
 BEGIN TRY
     BEGIN TRANSACTION;
@@ -209,8 +212,6 @@ FROM ITEMS i
 LEFT JOIN Checkouts c ON i.ItemID = c.ItemID AND c.CheckinDate IS NULL
 LEFT JOIN ENDUSER e ON c.UserID = e.UserID
 
-ALTER TABLE Categories ADD CONSTRAINT UQ_CategoryName UNIQUE (CategoryName); --Noticed that categories were able to be duplicated added this to prevent that
 
-SELECT TOP 5 * FROM Checkouts ORDER BY CheckoutID DESC;
-SELECT * FROM ITEMS;
-SELECT * FROM ENDUSER;
+
+EXEC sp_helptext 'sp_CheckinItem';
