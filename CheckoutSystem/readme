@@ -1,0 +1,7 @@
+
+
+templates and CSS generated with Claude
+
+
+Design Decision:
+    -Disabled users keep their username, and usernames are never reassigned. This keeps checkout history unambiguous and lets the unique constraint act as a safety check.

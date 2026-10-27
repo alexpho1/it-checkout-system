@@ -1,0 +1,16 @@
+ObjectGUID,SamAccountName,DisplayName,Mail,Enabled
+D91B230B-8619-53E2-8772-52CC8CE140BE,athompso,Avery Thompson,athompso@example.com,TRUE
+E076EDDA-BF70-5105-A9A9-118D7EECD0C4,brivera1,Blake Rivera,brivera1@example.com,TRUE
+6A8DDFBB-FD47-5320-A6BD-A3B4AB26E9D5,cnguyen1,Casey Nguyen,cnguyen1@example.com,TRUE
+,dokafor1,Dana Okafor,dokafor1@example.com,TRUE
+A6CAB448-B776-55B8-80A5-7513DA538556,epatel01,Emerson Patel,epatel01@example.com,TRUE
+01AA8550-F0E9-597F-95BA-D3D03F766F95,fbrooks1,Finley Brooks,fbrooks1@example.com,TRUE
+701682D0-76C0-5D85-BA88-116C8AB038D7,gcastill,Gray Castillo,gcastill@example.com,TRUE
+3EED92E2-01F3-5181-BC3A-FEE151827C4A,hlindqvi,Harper Lindqvist,hlindqvi@example.com,TRUE
+3268C0FC-B4A4-5DC3-9222-3ECCBEE62E41,imartin1,Indigo Martin,imartin1@example.com,TRUE
+71DB26F5-8365-5508-8D21-4A81C1882782,jellis01,Jordan Ellis,jellis01@example.com,TRUE
+47AAA577-6DF7-57B1-BE2F-8D9D56206BFF,kpark001,Kendall Park,kpark001@example.com,TRUE
+083A6C13-2DC9-5189-AE36-D6FED4A6AA5F,lreyes01,Logan Reyes,lreyes01@example.com,TRUE
+7CAF39DF-9F4D-58D9-B44E-A2BB656F2393,mfischer,Morgan Fischer,mfischer@example.com,TRUE
+4E7A0674-84FC-53F4-810B-3796B8BE0872,nabbott1,Noel Abbott,nabbott1@example.com,TRUE
+E9CFEEA5-E188-5064-A825-0BF091CAD9EB,odubois1,Oakley Dubois,odubois1@example.com,TRUE

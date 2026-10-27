@@ -211,7 +211,3 @@ SELECT
 FROM ITEMS i
 LEFT JOIN Checkouts c ON i.ItemID = c.ItemID AND c.CheckinDate IS NULL
 LEFT JOIN ENDUSER e ON c.UserID = e.UserID
-
-
-
-EXEC sp_helptext 'sp_CheckinItem';
