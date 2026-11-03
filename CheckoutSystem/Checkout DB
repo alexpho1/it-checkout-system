@@ -211,3 +211,23 @@ SELECT
 FROM ITEMS i
 LEFT JOIN Checkouts c ON i.ItemID = c.ItemID AND c.CheckinDate IS NULL
 LEFT JOIN ENDUSER e ON c.UserID = e.UserID
+  
+
+---Overdue items view
+GO
+CREATE view vw_OverdueItems AS(
+    SELECT c.CheckoutID, c.ItemID, i.ItemName, i.AssetTag, c.UserID, e.FullName, c.DueDate, ABS(DATEDIFF(DAY,CAST(GETDATE() AS DATE),c.DueDate)) AS DaysLate, c.TicketNumber
+    FROM CHECKOUTS c
+    JOIN ITEMS i on c.ItemID = i.ItemID
+    JOIN ENDUSER e on c.UserID = e.UserID
+    WHERE c.DueDate < CAST(GETDATE() AS DATE) AND c.CheckinDate IS NULL
+)
+---Diabled users with active checkouts view
+GO
+CREATE view vw_DisabledUserCheckouts AS(
+    SELECT c.CheckoutID, c.ItemID, i.ItemName, i.AssetTag, c.UserID, e.FullName, c.DueDate,c.TicketNumber
+    FROM CHECKOUTS c
+    JOIN ITEMS i on c.ItemID = i.ItemID
+    JOIN ENDUSER e on c.UserID = e.UserID
+    WHERE e.IsActive = 0 AND c.CheckinDate IS NULL
+)

@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<h1>Dashboard</h1>
+<p class="subtitle">What's out, what's late, and what needs attention.</p>
+
+<div class="stats">
+    <div class="stat">
+        <span class="stat-value">{{ stats.total }}</span>
+        <span class="stat-label">Total items</span>
+    </div>
+    <div class="stat">
+        <span class="stat-value">{{ stats.available }}</span>
+        <span class="stat-label">Available</span>
+    </div>
+    <div class="stat">
+        <span class="stat-value">{{ stats.checked_out }}</span>
+        <span class="stat-label">Checked out</span>
+    </div>
+    <div class="stat {{ 'alert-stat' if stats.overdue }}">
+        <span class="stat-value">{{ stats.overdue }}</span>
+        <span class="stat-label">Overdue</span>
+    </div>
+</div>
+
+<h2 class="panel-title">Overdue items <span class="count {{ 'hot' if overdue }}">{{ overdue|length }}</span></h2>
+<p class="panel-note">Past their due date and not yet checked in. Most overdue first.</p>
+<div class="table-wrap">
+    <table>
+        <thead>
+            <tr>
+                <th>Item</th><th>Asset Tag</th><th>Checked Out To</th>
+                <th>Ticket</th><th>Due Date</th><th>Days Late</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in overdue %}
+            <tr>
+                <td>{{ row.ItemName }}</td>
+                <td>{{ row.AssetTag }}</td>
+                <td>{{ row.FullName }}</td>
+                <td>{{ row.TicketNumber }}</td>
+                <td>{{ row.DueDate }}</td>
+                <td><span class="badge badge-late">{{ row.DaysLate }} day{{ '' if row.DaysLate == 1 else 's' }}</span></td>
+            </tr>
+            {% else %}
+            <tr><td colspan="6" class="empty">Nothing overdue. 🎉</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<h2 class="panel-title">Held by disabled users <span class="count {{ 'hot' if disabled }}">{{ disabled|length }}</span></h2>
+<p class="panel-note">Open checkouts assigned to people who are no longer active. These need to be recovered.</p>
+<div class="table-wrap">
+    <table>
+        <thead>
+            <tr>
+                <th>Item</th><th>Asset Tag</th><th>Last Held By</th>
+                <th>Ticket</th><th>Due Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in disabled %}
+            <tr>
+                <td>{{ row.ItemName }}</td>
+                <td>{{ row.AssetTag }}</td>
+                <td>{{ row.FullName }}</td>
+                <td>{{ row.TicketNumber }}</td>
+                <td>{{ row.DueDate }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5" class="empty">No equipment is held by disabled users.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

@@ -178,5 +178,31 @@ def checkin():
 def home():
     return render_template("home.html")
 
+@app.route("/dashboard", methods ={"GET"})
+def dashboard():
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute("SELECT * FROM vw_OverdueItems Order By DaysLate DESC")
+    overdue = cursor.fetchall()
+    cursor.execute("SELECT * FROM vw_DisabledUserCheckouts Order By DueDate DESC")
+    disabled = cursor.fetchall()
+    cursor.execute("SELECT COUNT(*) FROM ITEMS")
+    total = cursor.fetchone()[0]
+    cursor.execute("SELECT COUNT(*) FROM ITEMS WHERE Status = 'Available'")
+    available = cursor.fetchone()[0]
+    cursor.execute("SELECT COUNT(*) FROM ITEMS WHERE Status = 'Checked Out'")
+    checked_out = cursor.fetchone()[0]
+    cursor.execute("SELECT COUNT(*) FROM vw_OverdueItems")
+    overdue_count = cursor.fetchone()[0]
+    stats = {
+        "total": total,
+        "available": available,
+        "checked_out": checked_out,
+        "overdue": overdue_count
+    }
+    return render_template("dashboard.html",overdue=overdue, disabled=disabled, stats=stats)
+
+
+
 if __name__ == "__main__":
     app.run(debug=True, port=5001)
