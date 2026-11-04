@@ -1,7 +1,74 @@
+IT Equipment Checkout System
 
+A small internal tool for tracking IT equipment: who has what, when it's due back, and who needs a reminder. I built it as a portfolio project to practice SQL Server database design, with a thin Flask app on top so the data layer can be seen working end to end.
 
-templates and CSS generated with Claude
+Stack: SQL Server (Docker) · Python 3 · Flask · pyodbc
 
+What it does
+Inventory: items and categories, with a live status (Available / Checked Out).
+Check out / check in: each checkout has a due date and a SysAid ticket number. Double checkouts of the same item are blocked in the database, not in the app.
+Dashboard: summary tiles, an overdue list sorted by days late, and a list of equipment still held by disabled users.
+Email reminders: a script sends Early, Due and Late reminders and logs every attempt.
+User import: active users are loaded from an Active Directory-style CSV export through a staging table and a validated merge procedure. AD is simulated with this CSV in the project.
+What this demonstrates
 
-Design Decision:
-    -Disabled users keep their username, and usernames are never reassigned. This keeps checkout history unambiguous and lets the unique constraint act as a safety check.
+Schema design and constraints
+
+Surrogate primary keys, foreign keys, UNIQUE constraints (for example on category names and AD object GUIDs) and DEFAULT values.
+Table-level, named CHECK constraints for rules that span columns (such as due date versus checkout date).
+Soft delete (IsActive) instead of deleting rows, so history stays intact.
+A filtered unique index on ENDUSER.OBJECTGUID, which lets existing rows hold NULL until they are matched.
+
+Stored procedures and transactions
+
+sp_CheckoutItem and sp_CheckinItem change the item's status and the checkout history together, inside one transaction.
+Collision handling: the status update only succeeds if the item is still Available, and @@ROWCOUNT is checked, so two people cannot check out the same item.
+SET XACT_ABORT ON, TRY/CATCH, XACT_STATE() and THROW, so errors roll back cleanly and reach the caller.
+sp_ImportADUsers: validates a staging table first and aborts the whole import if anything is wrong, then runs update, insert and disable steps in a single transaction and records the counts in import_log.
+Quick start
+
+Prerequisites: Docker, Python 3, and the Microsoft ODBC Driver 18 for SQL Server.
+
+Start SQL Server (example; use your own password):
+   docker run --platform linux/amd64 -e ACCEPT_EULA=Y \
+     -e MSSQL_SA_PASSWORD='<your-password>' -e TZ=America/New_York \
+     -p 1433:1433 --name sqlserver -d mcr.microsoft.com/mssql/server:2022-latest
+
+--platform linux/amd64 is only needed on Apple Silicon. TZ matters because due dates use the server's local date. 2. Create the database ITCheckoutSystem and run the SQL scripts against it: tables, stored procedures, then views. 3. Install dependencies:
+
+   python3 -m venv venv && source venv/bin/activate
+   pip install -r requirements.txt
+Configure: copy .env.example to .env and fill in the database and SMTP values.
+Run the app:
+   python3 app.py
+
+Open http://localhost:5001. (Port 5001 is used because macOS AirPlay occupies 5000.)
+
+Import users from a CSV export: put the file in the Imports/ folder (or set IMPORT_DIR in .env), then:
+
+python3 import_ad_users.py ad_export.csv
+
+Expected columns: ObjectGUID, SamAccountName, DisplayName, Mail, Enabled.
+
+Send reminders:
+
+python3 send_reminders.py
+
+Sending needs real SMTP credentials in .env. Without them, each attempt is logged as failed in Reminder_Log and the script carries on.
+
+Design decisions
+History table plus stored status, no trigger. The Checkouts table is the history. ITEMS.Status is a stored copy that only the stored procedures change, which keeps the logic in one visible place.
+Soft delete everywhere. Users and items are deactivated, never deleted, so old checkouts always point at a real row.
+Reminder policy: 3 days before the due date, on the due date, then every 3 days while late. The query is a CTE, and Reminder_Log stops the same reminder going out twice.
+Staging before merge. The staging table has no constraints and accepts any text, so a bad file never fails halfway through loading. Validation queries then find the problems and report them.
+Match on ObjectGUID, not username. A username can change, so it is just an attribute. A one-time backfill links existing users to their GUID by username.
+Usernames are never reused. Disabled users keep their username. If one were reused, the unique constraint would fail the insert and the transaction would roll back.
+Dates use the server's local time. The container runs with TZ=America/New_York, so "today" in SQL matches the user's today.
+Reservations are out of scope for this version.
+Roadmap and known limitations
+No login or authentication. Anyone who can reach the app can use it.
+Scheduling: the reminder script and the user import run manually. Next step is cron (or Task Scheduler on Windows).
+Reservations (booking an item for a future date) are not supported.
+Credits
+
+The database schema, stored procedures, views, Flask routes and Python scripts are my own work. The HTML templates and CSS were generated with Claude (Anthropic) so I could focus on the SQL. I also used Claude as a coach and code reviewer while learning.
