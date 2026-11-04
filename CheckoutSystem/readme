@@ -52,7 +52,7 @@ Expected columns: ObjectGUID, SamAccountName, DisplayName, Mail, Enabled.
 
 Send reminders:
 
-python3 send_reminders.py
+python3 ReminderSystem.py
 
 Sending needs real SMTP credentials in .env. Without them, each attempt is logged as failed in Reminder_Log and the script carries on.
 
@@ -67,7 +67,7 @@ Dates use the server's local time. The container runs with TZ=America/New_York, 
 Reservations are out of scope for this version.
 Roadmap and known limitations
 No login or authentication. Anyone who can reach the app can use it.
-Scheduling: the reminder script and the user import run manually. Next step is cron (or Task Scheduler on Windows).
+Scheduling: the reminder script is auto-scheduled with cron at the moment and imports are still manual.
 Reservations (booking an item for a future date) are not supported.
 Credits
 
